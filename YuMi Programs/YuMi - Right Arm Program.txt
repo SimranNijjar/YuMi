@@ -1,0 +1,183 @@
+MODULE MainModule
+    !******************************************************************
+    !* Station : YuMi Work Cell
+    !******************************************************************
+    !* Customer : McMaster University
+    !* Project Name : Electronic Screwdriver Assembly
+    !*
+    !* Robot Model : IRB 14000
+    !* Software : RobotWare 6.07
+    !*
+    !* Authors : Simran Nijjar
+    !* Company : McMaster University
+    !* City/Province : Hamilton, Ontario
+    !* Department : W. Booth School of Engineering Practice & Technology
+    !* Telephone : N/A
+    !*
+    !* Program: T_ROB_R
+    !* Created : 2018-09-18
+    !* Version : 1.0
+    !*
+    !******************************************************************
+    
+    !General Declaration
+    PERS tasks task_list{2} := [ ["T_ROB_R"], ["T_ROB_L"] ];
+    VAR syncident sync1; !Sync Arm Home Positions
+    VAR syncident sync2; !Sync Gripper Open Position
+    VAR syncident sync3; !Sync Gripper Close Position
+    VAR syncident sync4; !Sync GrommetBin Position1
+    VAR syncident sync5; !Sync GrommetBin Position2
+    VAR syncident sync6; !Sync GrommetBin Position3
+    VAR syncident sync7; !Sync GrommetBin Position4
+    
+    !Communication Declaration
+    VAR socketdev server;
+    VAR socketdev client;
+    VAR string message;
+    VAR rawbytes data;
+
+    
+	PROC main()
+        !Move to Home Position
+		MoveJ [[116.737861724,-149.931251033,139.878323961],[0.062653888,-0.842399836,-0.108469979,-0.524090898],[0,0,0,4],[-101.221,9E+09,9E+09,9E+09,9E+09,9E+09]], v1000, z50, tGripper;
+		!MoveJ [[110.29,-313.83,302.97],[0.320874,0.00713782,0.947055,0.00865406],[0,1,2,5],[-110.474,9E+09,9E+09,9E+09,9E+09,9E+09]], v1000, z50, tool0;
+        WaitSyncTask \InPos, sync1, task_list \TimeOut := 60;
+
+        !Calibrate Grippers
+        GripperInitialization;
+        
+        !Grippers Initialized Comformation
+        g_MoveTo 0;
+        WaitRob \InPos;
+        WaitSyncTask \InPos, sync2, task_list \TimeOut := 60;
+        
+        g_MoveTo 15;
+        WaitRob \InPos;
+        WaitSyncTask \InPos, sync3, task_list \TimeOut := 60;
+        
+        !Move Screwdriver Bin to Correct Position
+        MoveJ [[1.625300521,-346.188591473,227.922111416],[0.007707619,0.999903927,-0.000742016,0.011496899],[0,-1,1,4],[-70.2983,9E+09,9E+09,9E+09,9E+09,9E+09]], v1000, z50, tGripper;
+        MoveJ [[111.921573894,-517.679338441,262.371959938],[0.007636972,0.999904216,-0.000728005,0.011519802],[0,-1,2,4],[-72.7464,9E+09,9E+09,9E+09,9E+09,9E+09]], v1000, z50, tGripper;
+        MoveJ [[234.314486144,-519.240905612,270.651668137],[0.007608269,0.999904877,-0.0005289,0.011492199],[0,-1,2,4],[-162.822,9E+09,9E+09,9E+09,9E+09,9E+09]], v1000, z50, tGripper;
+        g_MoveTo 0;
+        WaitRob \InPos;
+        MoveL [[234.312932861,-519.240747252,215.101630035],[0.00760767,0.999904947,-0.000530615,0.011486499],[0,-1,2,4],[-162.825,9E+09,9E+09,9E+09,9E+09,9E+09]], v1000, z50, tGripper;
+        MoveL [[80.782123738,-519.239699323,215.101595493],[0.00760385,0.999905012,-0.00052779,0.0114835],[0,0,1,4],[-162.828,9E+09,9E+09,9E+09,9E+09,9E+09]], v100, z50, tGripper;
+        MoveL [[91.392040059,-520.360093654,215.101599575],[0.00760529,0.999905004,-0.000528675,0.0114832],[0,0,1,4],[-162.831,9E+09,9E+09,9E+09,9E+09,9E+09]], v200, z50, tGripper;
+        MoveL [[91.399265315,-520.341509224,288.241945811],[0.007536403,0.999904343,-0.000572503,0.011583604],[0,-1,1,4],[-46.5055,9E+09,9E+09,9E+09,9E+09,9E+09]], v200, z50, tGripper;
+        WaitRob \InPos;
+        MoveL [[91.398688306,-359.668522139,288.241887402],[0.007525373,0.999904448,-0.00057653,0.011581505],[0,-1,2,4],[-46.5056,9E+09,9E+09,9E+09,9E+09,9E+09]], v200, z50, tGripper;
+        WaitRob \InPos;
+        MoveJ [[113.281646346,-417.364249351,242.672999782],[0.496441086,0.502834087,-0.499757087,0.500946087],[0,1,-1,4],[-119.673,9E+09,9E+09,9E+09,9E+09,9E+09]], v200, z50, tGripper;
+        
+        g_MoveTo 9;
+        WaitRob \InPos;
+        MoveL [[113.281646863,-485.724250766,242.673272807],[0.496441087,0.502833088,-0.499757088,0.500947088],[0,1,0,4],[-119.673,9E+09,9E+09,9E+09,9E+09,9E+09]], v200, z50, tGripper;
+        WaitRob \InPos;
+        g_GripIn \holdForce :=12;
+        MoveL [[113.282188675,-485.724252296,355.154359115],[0.496443089,0.502833091,-0.49975309,0.50094909],[0,2,0,4],[-119.675,9E+09,9E+09,9E+09,9E+09,9E+09]], v200, z50, tGripper;
+        MoveJ [[317.912323563,-439.194244895,355.153131276],[0.496442332,0.502837336,-0.499753334,0.500945335],[1,1,-1,4],[-119.678,9E+09,9E+09,9E+09,9E+09,9E+09]], v200, z50, tGripper;
+        MoveJ [[317.022439031,-296.105779981,220.044708012],[0.0188621,-0.709563985,0.704158986,0.0179804],[1,3,-1,4],[-119.677,9E+09,9E+09,9E+09,9E+09,9E+09]], v200, z50, tGripper;
+        MoveL [[344.96,-59.21,200.05],[0.00733667,-0.709769,0.704368,0.00639342],[1,3,0,4],[157.039,9E+09,9E+09,9E+09,9E+09,9E+09]], v200, z50, tGripper;
+        WaitSyncTask \InPos, sync4, task_list \TimeOut := 60;
+        MoveL [[344.96,-59.21,61.37],[0.00734294,-0.709766,0.70437,0.00639399],[1,3,0,4],[157.041,9E+09,9E+09,9E+09,9E+09,9E+09]], v20, z50, tGripper;
+        MoveL [[344.96,-59.21,50.36],[0.00734279,-0.709765,0.704371,0.00639592],[1,3,0,4],[157.039,9E+09,9E+09,9E+09,9E+09,9E+09]], v20, z50, tGripper;
+        WaitRob \InPos;
+        g_MoveTo 6;
+        WaitRob \InPos;
+        WaitSyncTask \InPos, sync5, task_list \TimeOut := 60;
+        WaitSyncTask \InPos, sync6, task_list \TimeOut := 60;
+        MoveL [[344.95,-59.21,80.07],[0.0073388,-0.709769,0.704367,0.00639981],[1,3,0,4],[157.039,9E+09,9E+09,9E+09,9E+09,9E+09]], v20, z50, tGripper;
+        MoveL [[344.95,-90.89,80.07],[0.00733899,-0.70977,0.704366,0.00640178],[1,3,0,4],[157.038,9E+09,9E+09,9E+09,9E+09,9E+09]], v20, z50, tGripper;
+        WaitSyncTask \InPos, sync7, task_list \TimeOut := 60;
+        MoveL [[425.74,-90.89,80.07],[0.00733914,-0.709769,0.704367,0.00640155],[1,3,0,4],[157.038,9E+09,9E+09,9E+09,9E+09,9E+09]], v20, z50, tGripper;
+        MoveL [[425.74,-90.89,47.66],[0.00734079,-0.709768,0.704368,0.00640208],[1,3,0,4],[157.038,9E+09,9E+09,9E+09,9E+09,9E+09]], v20, z50, tGripper;
+        WaitRob \InPos;
+        g_MoveTo 12;
+        WaitRob \InPos;
+        MoveL [[425.74,-90.89,80.07],[0.00733914,-0.709769,0.704367,0.00640155],[1,3,0,4],[157.038,9E+09,9E+09,9E+09,9E+09,9E+09]], v20, z50, tGripper;
+        MoveJ [[358.12,-262.41,175.42],[0.00734778,-0.709763,0.704373,0.00641492],[0,3,-1,4],[157.036,9E+09,9E+09,9E+09,9E+09,9E+09]], v200, z50, tGripper;
+        MoveL [[401.48,-545.66,175.40],[0.00980935,-0.999797,0.0175768,-0.000449508],[1,3,-2,4],[-152.759,9E+09,9E+09,9E+09,9E+09,9E+09]], v200, z50, tGripper;
+        MoveL [[292.66,-543.24,162.68],[0.00981674,-0.999797,0.0175764,-0.000446634],[0,3,-2,4],[-152.763,9E+09,9E+09,9E+09,9E+09,9E+09]], v20, z50, tGripper;
+        MoveL [[292.39,-544.14,112.56],[0.00982093,-0.999936,-0.00555262,-0.000675012],[0,3,-2,4],[-152.771,9E+09,9E+09,9E+09,9E+09,9E+09]], v20, z50, tGripper;
+        WaitRob \InPos;
+        g_MoveTo 6;
+        WaitRob \InPos;        
+        g_GripIn \holdForce := 12;
+        WaitRob \InPos;
+        MoveL [[292.66,-543.25,231.50],[0.00981188,-0.999797,0.0175706,-0.000448127],[0,3,-2,4],[-152.762,9E+09,9E+09,9E+09,9E+09,9E+09]], v20, z50, tGripper;
+        MoveL [[397.32,-543.24,231.50],[0.00980798,-0.999797,0.0175712,-0.000449308],[1,3,-2,4],[-152.763,9E+09,9E+09,9E+09,9E+09,9E+09]], v20, z50, tGripper;
+        MoveL [[366.17,-140.98,181.13],[0.00267605,0.705528,0.708672,0.00274474],[1,3,-2,4],[166.603,9E+09,9E+09,9E+09,9E+09,9E+09]], v200, z50, tGripper;
+        MoveL [[392.31,-12.03,151.62],[0.00277692,0.677184,0.735803,0.00262845],[1,3,-2,4],[166.306,9E+09,9E+09,9E+09,9E+09,9E+09]], v200, z50, tGripper;
+        MoveL [[393.44,-11.60,67.62],[0.00277557,0.677187,0.735801,0.0026324],[1,3,-2,4],[166.306,9E+09,9E+09,9E+09,9E+09,9E+09]], v20, z50, tGripper;
+        MoveL [[393.44,-11.60,62.17],[0.00277571,0.677187,0.735801,0.00263129],[1,3,-2,4],[166.306,9E+09,9E+09,9E+09,9E+09,9E+09]], v10, z50, tGripper;
+        WaitRob \InPos;
+        g_MoveTo 12;
+        WaitRob \InPos;
+        MoveL [[393.44,-11.60,67.62],[0.00277557,0.677187,0.735801,0.0026324],[1,3,-2,4],[166.306,9E+09,9E+09,9E+09,9E+09,9E+09]], v20, z50, tGripper;
+        MoveL [[392.31,-12.03,151.62],[0.00277692,0.677184,0.735803,0.00262845],[1,3,-2,4],[166.306,9E+09,9E+09,9E+09,9E+09,9E+09]], v200, z50, tGripper;
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+!        !Create communication
+!        SocketCreate server;
+!        SocketBind server, "10.0.13.12", 55000;
+!        SocketListen server;
+!        SocketAccept server, client;
+        
+!        !Send message to the client
+!        !SocketSend client\Str:="Hello me!";
+        
+!        FOR i FROM 1 TO 10 DO
+!            SocketSend client\Str:="Hello me!";
+!        ENDFOR
+        
+        
+!        !Receive a message from the client
+!        SocketReceive client, \RawData:=data;
+!        UnpackRawBytes data,1,message\ASCII:=15;
+        
+!        !Close communication
+!        SocketClose server;
+        
+        
+    ENDPROC
+    
+    
+    
+    
+    PROC GripperInitialization()
+            !Initialization code
+            VAR num GripperState;
+            VAR bool GripperCalibrated;
+
+            !Check gripper is powered on and calibrated
+            GripperState:=g_GetState();
+            TPWrite ": Gripper State: "\Num:=GripperState;
+            GripperCalibrated:=g_IsCalibrated();
+            
+            IF (Not GripperCalibrated) THEN
+                g_Init\Calibrate;
+            ENDIF  
+            
+            RETURN;
+        
+        ERROR
+            IF (ERRNO=ERR_NORUNUNIT) THEN TPWrite " Gripper not powered on.";
+                EXIT;
+            ENDIF
+            TPWrite " Init. - Unhandled Error. #"\Num:=ERRNO;
+            EXIT;
+    ENDPROC
+    
+ENDMODULE

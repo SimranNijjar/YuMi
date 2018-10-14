@@ -1,0 +1,150 @@
+MODULE MainModule
+    !******************************************************************
+    !* Station : YuMi Work Cell
+    !******************************************************************
+    !* Customer : McMaster University
+    !* Project Name : Electronic Screwdriver Assembly
+    !*
+    !* Robot Model : IRB 14000
+    !* Software : RobotWare 6.07
+    !*
+    !* Authors : Simran Nijjar
+    !* Company : McMaster University
+    !* City/Province : Hamilton, Ontario
+    !* Department : W. Booth School of Engineering Practice & Technology
+    !* Telephone : N/A
+    !*
+    !* Program: T_ROB_L
+    !* Created : 2018-09-18
+    !* Version : 1.0
+    !*
+    !******************************************************************
+    
+    !General Declaration
+    PERS tasks task_list{2} := [ ["T_ROB_R"], ["T_ROB_L"] ];
+    VAR syncident sync1; !Sync Arm Home Positions
+    VAR syncident sync2; !Sync Gripper Open Position
+    VAR syncident sync3; !Sync Gripper Close Position
+    VAR syncident sync4; !Sync GrommetBin Position1
+    VAR syncident sync5; !Sync GrommetBin Position2
+    VAR syncident sync6; !Sync GrommetBin Position3
+    VAR syncident sync7; !Sync GrommetBin Position4
+    
+    !Communication Declaration
+    VAR socketdev server;
+    VAR socketdev client;
+    VAR string message;
+    VAR rawbytes data;
+    
+    
+    PROC main()
+		MoveJ [[106.445211471,158.554553337,131.92293514],[0.04782649,0.851736822,-0.124160974,0.506794894],[0,0,0,4],[101.293,9E+09,9E+09,9E+09,9E+09,9E+09]], v1000, z50, tGripper;
+		!MoveJ [[97.79,299.03,304.48],[0.0114881,-0.942459,0.0541276,-0.329712],[0,-2,-2,4],[108.747,9E+09,9E+09,9E+09,9E+09,9E+09]], v1000, z50, tool0;
+        WaitSyncTask \InPos, sync1, task_list \TimeOut := 60;
+        
+        !Calibrate Grippers
+        GripperInitialization;
+        
+        !Grippers Initialized Comformation
+        g_MoveTo 0;
+        WaitRob \InPos;
+        WaitSyncTask \InPos, sync2, task_list \TimeOut := 60;
+        
+        g_MoveTo 15;
+        WaitRob \InPos;
+        WaitSyncTask \InPos, sync3, task_list \TimeOut := 60;
+        
+        !Remove Grommet from Right Screwdriver Shell
+        WaitSyncTask \InPos, sync4, task_list \TimeOut := 60;
+        MoveJ [[106.46,283.94,206.53],[0.0478122,0.85173,-0.124169,0.506805],[0,0,0,4],[101.295,9E+09,9E+09,9E+09,9E+09,9E+09]], v200, z50, tGripper;
+        MoveJ [[404.90,147.80,169.77],[0.009872,-0.723527,-0.690004,0.0174687],[-1,1,0,4],[-169.944,9E+09,9E+09,9E+09,9E+09,9E+09]], v200, z50, tGripper;
+        WaitSyncTask \InPos, sync5, task_list \TimeOut := 60;
+        MoveL [[404.90,28.94,73.67],[0.0098782,-0.723515,-0.690017,0.0174677],[-1,2,0,4],[146.542,9E+09,9E+09,9E+09,9E+09,9E+09]], v200, z50, tGripper;
+        MoveL [[404.90,28.94,46.77],[0.0098791,-0.723519,-0.690013,0.017455],[-1,2,0,4],[146.542,9E+09,9E+09,9E+09,9E+09,9E+09]], v20, z50, tGripper;
+        WaitSyncTask \InPos, sync6, task_list \TimeOut := 60;
+        WaitSyncTask \InPos, sync7, task_list \TimeOut := 60;
+        MoveL [[404.90,28.94,73.67],[0.0098782,-0.723515,-0.690017,0.0174677],[-1,2,0,4],[146.542,9E+09,9E+09,9E+09,9E+09,9E+09]], v200, z50, tGripper;
+        MoveJ [[404.90,147.80,169.77],[0.009872,-0.723527,-0.690004,0.0174687],[-1,1,0,4],[-169.944,9E+09,9E+09,9E+09,9E+09,9E+09]], v200, z50, tGripper;
+        MoveL [[279.71,203.37,169.78],[0.0174576,0.685927,-0.727395,-0.00975931],[0,1,-2,4],[-169.942,9E+09,9E+09,9E+09,9E+09,9E+09]], v200, z50, tGripper;
+        WaitRob \InPos;
+        MoveL [[275.69,131.92,239.66],[0.499697,0.476231,-0.524027,0.498901],[0,0,0,4],[-175.134,9E+09,9E+09,9E+09,9E+09,9E+09]], v200, z50, tGripper;
+        g_MoveTo 12;
+        
+        
+        
+        
+        
+        
+!        !Vacuum Controls
+!        VacuumTool_ON;
+!        WaitTime(10);
+!        VacuumTool_OFF;
+
+        
+        
+        
+!        !Create communication
+!        SocketCreate server;
+!        SocketBind server, "10.0.13.12", 55000;
+!        SocketListen server;
+!        SocketAccept server, client;
+        
+!        !Send message to the client
+!        !SocketSend client\Str:="Hello me!";
+        
+!        FOR i FROM 1 TO 10 DO
+!            SocketSend client\Str:="Hello me!";
+!        ENDFOR
+        
+        
+!        !Receive a message from the client
+!        SocketReceive client, \RawData:=data;
+!        UnpackRawBytes data,1,message\ASCII:=15;
+        
+!        !Close communication
+!        SocketClose server;
+    ENDPROC
+    
+    
+    
+    
+    PROC GripperInitialization()
+            !Initialization code
+            VAR num GripperState;
+            VAR bool GripperCalibrated;
+
+            !Check gripper is powered on and calibrated.
+            GripperState:=g_GetState();
+            TPWrite ": Gripper State: "\Num:=GripperState;
+            GripperCalibrated:=g_IsCalibrated();
+            
+            IF (Not GripperCalibrated) THEN
+                g_Init\Calibrate;
+            ENDIF  
+        RETURN;
+        
+        ERROR
+            IF (ERRNO=ERR_NORUNUNIT) THEN TPWrite " Gripper not powered on.";
+                EXIT;
+            ENDIF
+            TPWrite " Init. - Unhandled Error. #"\Num:=ERRNO;
+            EXIT;
+    ENDPROC
+    
+    
+    PROC VacuumTool_OFF()
+        SetDO Tool_Suction_ON, 0; !Check Logic to confirm that the solenoid valve is in the neutral state before turning off
+        SetDO Tool_Suction_OFF, 1;
+        WaitTime(0.5);
+        SetDO Tool_Suction_OFF, 0;
+    ENDPROC
+    
+    
+    PROC VacuumTool_ON()
+        SetDO Tool_Suction_OFF, 0; !Check Logic to confirm that the solenoid valve is in the neutral state before turning on
+        SetDO Tool_Suction_ON, 1;
+        WaitTime(0.5);
+        SetDO Tool_Suction_ON, 0;
+    ENDPROC
+    
+ENDMODULE
